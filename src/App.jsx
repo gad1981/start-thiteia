@@ -21,7 +21,7 @@ import { BagGame, OrderGame } from "./games.jsx";
 import { chapterIcon, Icon, introIcon, kitIcon, photoAlt, worryIcon } from "./icons.jsx";
 import { loadState, saveState } from "./storage.js";
 
-const PHOTO_V = "2";
+const PHOTO_V = "5";
 const photo = (id) => `/photos/${id}.jpg?v=${PHOTO_V}`;
 
 function useHash() {
@@ -105,7 +105,7 @@ export default function App() {
         />
       )}
       {route.name === "quiz" && <Quiz state={state} book={book} id={route.id} patch={patch} go={go} />}
-      {route.name === "play" && <Play state={state} go={go} saveBest={saveBest} />}
+      {route.name === "play" && <Play state={state} go={go} saveBest={saveBest} patch={patch} />}
       {route.name === "list" && <CheckList state={state} patch={patch} />}
       {route.name === "ask" && <Ask country={country} go={go} />}
       {route.name === "guide" && <Guide state={state} book={book} />}
@@ -553,43 +553,96 @@ function Quiz({ state, book, id, patch, go }) {
   );
 }
 
-function Play({ state, go, saveBest }) {
+function Play({ state, go, saveBest, patch }) {
   const [which, setWhich] = useState(null);
   const games = [
-    { id: "snake", icon: "cards", title: "Φίδι", text: "Κλασικό. Σύρε ή πάτα τα βελάκια.", best: state.games.snake, unit: "πόντοι" },
-    { id: "memory", icon: "heart", title: "Μνήμη", text: "Βρες τα ζευγάρια χωρίς άγχος.", best: state.games.memory, unit: "πόντοι" },
-    { id: "react", icon: "sun", title: "Αντίδραση", text: "Πράσινο = πάτα. Πόσο γρήγορα είσαι;", best: state.games.react, unit: "πόντοι" },
-    { id: "simon", icon: "moon", title: "Σειρά", text: "Θυμήσου τα χρώματα και επανέλαβε.", best: state.games.simon, unit: "πόντοι" },
+    { id: "snake", cover: "game-snake", title: "Φίδι", text: "Κλασικό. Σύρε ή πάτα τα βελάκια.", best: state.games.snake, unit: "πόντοι" },
+    { id: "memory", cover: "game-memory", title: "Μνήμη", text: "Βρες τα ζευγάρια χωρίς άγχος.", best: state.games.memory, unit: "πόντοι" },
+    { id: "react", cover: "game-react", title: "Αντίδραση", text: "Πράσινο = πάτα. Πόσο γρήγορα είσαι;", best: state.games.react, unit: "πόντοι" },
+    { id: "simon", cover: "game-simon", title: "Σειρά", text: "Θυμήσου τα χρώματα και επανέλαβε.", best: state.games.simon, unit: "πόντοι" },
   ];
+  const active = games.find((game) => game.id === which);
+  const back = () => setWhich(null);
+  const coverUrl = active ? photo(active.cover) : null;
+  const setPrefs = (id, partial) => {
+    patch({
+      gamePrefs: {
+        ...state.gamePrefs,
+        [id]: { ...state.gamePrefs[id], ...partial },
+      },
+    });
+  };
+
+  useEffect(() => {
+    document.body.classList.toggle("game-open", Boolean(which));
+    return () => document.body.classList.remove("game-open");
+  }, [which]);
+
   return (
-    <main className="sheet play-hub">
-      <p className="kicker">Περιοχή παιχνιδιών</p>
-      <h1>Για όταν βαριέσαι στον θάλαμο.</h1>
-      <p className="lede">Καθαρά παιχνίδια. Χωρίς κουίζ και χωρίς μάθημα. Το καλύτερο σκορ μένει σε αυτό το τηλέφωνο.</p>
-      {!which && (
+    <>
+      <main className="sheet play-hub">
+        <p className="kicker">Περιοχή παιχνιδιών</p>
+        <h1>Για όταν βαριέσαι στον θάλαμο.</h1>
+        <p className="lede">Καθαρά παιχνίδια. Χωρίς κουίζ και χωρίς μάθημα. Το καλύτερο σκορ μένει σε αυτό το τηλέφωνο.</p>
         <div className="play-grid">
           {games.map((game) => (
-            <button key={game.id} type="button" className="play-card" onClick={() => setWhich(game.id)}>
-              <span className="play-icon"><Icon name={game.icon} /></span>
-              <span>
+            <button key={game.id} type="button" className="play-cover" onClick={() => setWhich(game.id)}>
+              <span className="play-art">
+                <img src={photo(game.cover)} alt="" />
+              </span>
+              <span className="play-meta">
                 <small>{game.best != null ? `Καλύτερο ${game.best} ${game.unit}` : "Παίξε τώρα"}</small>
                 <strong>{game.title}</strong>
                 <em>{game.text}</em>
               </span>
-              <Icon name="arrow" />
             </button>
           ))}
         </div>
+        <div className="row">
+          <button type="button" className="btn ghost" onClick={() => go("#/map")}>Στη διαδρομή</button>
+        </div>
+      </main>
+      {which === "snake" && (
+        <SnakeGame
+          cover={coverUrl}
+          best={state.games.snake}
+          prefs={state.gamePrefs.snake}
+          onPrefs={(partial) => setPrefs("snake", partial)}
+          onBack={back}
+          onScore={(score) => saveBest("snake", score)}
+        />
       )}
-      {which === "snake" && <SnakeGame onScore={(score) => saveBest("snake", score)} />}
-      {which === "memory" && <MemoryGame onScore={(score) => saveBest("memory", score)} />}
-      {which === "react" && <ReactionGame onScore={(score) => saveBest("react", score)} />}
-      {which === "simon" && <SequenceGame onScore={(score) => saveBest("simon", score)} />}
-      <div className="row">
-        {which && <button type="button" className="btn ghost" onClick={() => setWhich(null)}>Όλα τα παιχνίδια</button>}
-        <button type="button" className="btn ghost" onClick={() => go("#/map")}>Στη διαδρομή</button>
-      </div>
-    </main>
+      {which === "memory" && (
+        <MemoryGame
+          cover={coverUrl}
+          best={state.games.memory}
+          prefs={state.gamePrefs.memory}
+          onPrefs={(partial) => setPrefs("memory", partial)}
+          onBack={back}
+          onScore={(score) => saveBest("memory", score)}
+        />
+      )}
+      {which === "react" && (
+        <ReactionGame
+          cover={coverUrl}
+          best={state.games.react}
+          prefs={state.gamePrefs.react}
+          onPrefs={(partial) => setPrefs("react", partial)}
+          onBack={back}
+          onScore={(score) => saveBest("react", score)}
+        />
+      )}
+      {which === "simon" && (
+        <SequenceGame
+          cover={coverUrl}
+          best={state.games.simon}
+          prefs={state.gamePrefs.simon}
+          onPrefs={(partial) => setPrefs("simon", partial)}
+          onBack={back}
+          onScore={(score) => saveBest("simon", score)}
+        />
+      )}
+    </>
   );
 }
 
