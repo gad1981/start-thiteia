@@ -16,9 +16,13 @@ import {
   timings,
   worries,
 } from "./content.js";
-import { BagGame, OrderGame, SituationGame } from "./games.jsx";
+import { MemoryGame, ReactionGame, SequenceGame, SnakeGame } from "./casual.jsx";
+import { BagGame, OrderGame } from "./games.jsx";
 import { chapterIcon, Icon, introIcon, kitIcon, photoAlt, worryIcon } from "./icons.jsx";
 import { loadState, saveState } from "./storage.js";
+
+const PHOTO_V = "2";
+const photo = (id) => `/photos/${id}.jpg?v=${PHOTO_V}`;
 
 function useHash() {
   const [hash, setHash] = useState(() => window.location.hash || "#/");
@@ -59,13 +63,17 @@ export default function App() {
 
   function recordGame(key, correct, total) {
     const amount = Math.round((correct / total) * 40);
+    saveBest(key, amount);
+  }
+
+  function saveBest(key, score) {
     setState((prev) => {
       const prevBest = prev.games[key] || 0;
-      if (amount <= prevBest) return prev;
+      if (score <= prevBest) return prev;
       return {
         ...prev,
-        xp: prev.xp + (amount - prevBest),
-        games: { ...prev.games, [key]: amount },
+        xp: prev.xp + Math.min(20, score - prevBest),
+        games: { ...prev.games, [key]: score },
       };
     });
   }
@@ -97,7 +105,7 @@ export default function App() {
         />
       )}
       {route.name === "quiz" && <Quiz state={state} book={book} id={route.id} patch={patch} go={go} />}
-      {route.name === "play" && <Play state={state} go={go} recordGame={recordGame} />}
+      {route.name === "play" && <Play state={state} go={go} saveBest={saveBest} />}
       {route.name === "list" && <CheckList state={state} patch={patch} />}
       {route.name === "ask" && <Ask country={country} go={go} />}
       {route.name === "guide" && <Guide state={state} book={book} />}
@@ -159,20 +167,20 @@ function Home({ state, book, go }) {
   return (
     <main className="home-screen">
       <section className="hero">
-        <img className="hero-photo" src="/photos/hero.jpg" alt={photoAlt.hero} />
+        <img className="hero-photo" src={photo("hero")} alt={photoAlt.hero} />
         <div className="hero-copy">
-          <p className="eyebrow">Οδηγός νεοσύλλεκτου · {place.force}</p>
-          <h1>Η μέρα που παρουσιάζεσαι. Εσύ, με την τσάντα κλειστή.</h1>
-          <p className="lede">Επτά σύντομα κεφάλαια. Χωρίς λογαριασμό. Μένει σε αυτό το τηλέφωνο.</p>
+          <p className="eyebrow">Για την πρώτη μέρα μέσα · {place.force}</p>
+          <h1>Μπήκες. Ας δούμε τι γίνεται τώρα.</h1>
+          <p className="lede">Λίγο για τα χαρτιά. Κυρίως για τον ρυθμό μέσα. Και παιχνίδια θαλάμου. Χωρίς λογαριασμό.</p>
         </div>
         <div className="hero-actions">
           <button type="button" className="btn solid" onClick={() => go(state.onboarded ? "#/map" : "#/journey")}>
-            {state.onboarded ? "Συνέχισε τη διαδρομή" : "Ξεκίνα τον οδηγό"}
+            {state.onboarded ? "Συνέχισε τη διαδρομή" : "Άνοιξε τον οδηγό"}
             <Icon name="arrow" />
           </button>
-          <button type="button" className="btn ghost" onClick={() => go("#/intro")}>
-            <Icon name="book" />
-            Τι θα ανακαλύψεις;
+          <button type="button" className="btn ghost" onClick={() => go("#/play")}>
+            <Icon name="cards" />
+            Περιοχή παιχνιδιών
           </button>
         </div>
       </section>
@@ -183,7 +191,7 @@ function Home({ state, book, go }) {
             <li key={chapter.id}>
               <button type="button" onClick={() => go(open ? `#/chapter/${chapter.id}` : "#/map")}>
                 <span className="shot">
-                  <img src={`/photos/${chapter.id}.jpg`} alt="" />
+                  <img src={photo(chapter.id)} alt="" />
                   <b>{String(index + 1).padStart(2, "0")}</b>
                 </span>
                 <span>
@@ -197,9 +205,12 @@ function Home({ state, book, go }) {
         })}
       </ol>
       <section className="band">
-        <h2>Όχι απλώς μια λίστα συμβουλών.</h2>
-        <p>Περνάς τα κεφάλαια με τον ρυθμό σου, ξεκλειδώνεις το κουίζ, ρωτάς τον οδηγό και βλέπεις πόσα από τα επτά έκλεισες.</p>
-        <button type="button" className="btn solid" onClick={() => go(state.onboarded ? "#/map" : "#/journey")}>Ξεκίνα τον οδηγό</button>
+        <h2>Περίπου 20% χαρτιά. 80% τι κάνουμε τώρα.</h2>
+        <p>Ένα σύντομο κεφάλαιο για ό,τι ήδη πρέπει να έχεις. Τα υπόλοιπα για θάλαμο, σώμα, τηλέφωνο, άδειες. Και φίδι, μνήμη, αντίδραση όταν βαριέσαι.</p>
+        <div className="row">
+          <button type="button" className="btn solid" onClick={() => go(state.onboarded ? "#/map" : "#/journey")}>Άνοιξε τη διαδρομή</button>
+          <button type="button" className="btn ghost" onClick={() => go("#/play")}>Παιχνίδια</button>
+        </div>
       </section>
     </main>
   );
@@ -209,8 +220,8 @@ function Intro({ go }) {
   return (
     <main className="sheet">
       <p className="kicker">Οδηγός</p>
-      <h1>Μερικά πράγματα που θα ήθελα να ήξερα πριν παρουσιαστώ.</h1>
-      <p className="lede">Η πρώτη μέρα έρχεται με ουρά, χαρτιά και ένα τηλέφωνο που δεν χτυπά όποτε θέλεις. Δεν χρειάζεται να τα ξέρεις όλα. Χρειάζεται να ξέρεις από πού ξεκινάς.</p>
+      <h1>Μερικά πράγματα που βοηθάνε την πρώτη μέρα μέσα.</h1>
+      <p className="lede">Ουρά, χαρτιά, θάλαμος και ένα τηλέφωνο που δεν χτυπά όποτε θέλεις. Δεν χρειάζεται να τα ξέρεις όλα. Χρειάζεται να ξέρεις τι γίνεται τώρα.</p>
       {introPoints.map((point, index) => (
         <section key={point.title} className="point">
           <p className="kicker"><Icon name={introIcon[index]} /> {point.kicker}</p>
@@ -233,10 +244,10 @@ function Journey({ state, patch, go }) {
   });
 
   const steps = [
-    { title: "Τι σε απασχολεί πριν την πόρτα;", hint: "Ως τρία.", valid: draft.worries.length > 0 },
-    { title: "Τι θέλεις να σου μείνει;", hint: "Ένα.", valid: Boolean(draft.aim) },
+    { title: "Τι σε απασχολεί τώρα μέσα;", hint: "Ως τρία.", valid: draft.worries.length > 0 },
+    { title: "Τι θέλεις να σου μείνει από τις πρώτες μέρες;", hint: "Ένα.", valid: Boolean(draft.aim) },
     { title: "Πού βρίσκεσαι τώρα;", hint: "Ένα.", valid: Boolean(draft.timing) },
-    { title: "Πού θες την πρώτη βοήθεια του οδηγού;", hint: "Ένα.", valid: Boolean(draft.support) },
+    { title: "Από πού θες να ξεκινήσει ο οδηγός;", hint: "Ένα.", valid: Boolean(draft.support) },
   ];
 
   function toggleWorry(id) {
@@ -314,39 +325,50 @@ function Map({ state, book, go }) {
       <section className="sheet">
         <p className="kicker">{countries[state.country].force}</p>
         <h1>Η διαδρομή μου</h1>
-        <p className="lede">Τα κεφάλαια ξεκλειδώνουν ένα ένα.</p>
+        <p className="lede">Λίγο προετοιμασία. Κυρίως τι κάνουμε τώρα. Τα κεφάλαια ξεκλειδώνουν ένα ένα.</p>
         <p>{personalLine(state)}</p>
         <div className="meter" aria-label={`${progress.pct}%`}>
           <div><b>{progress.pct}%</b><span>{progress.done} από {progress.total} κεφάλαια ολοκληρώθηκαν</span></div>
           <span className="track"><i style={{ width: `${progress.pct}%` }} /></span>
         </div>
       </section>
-      <ol className="chapters">
-        {book.map((chapter, index) => {
-          const open = index === 0 || passed.has(keyFor(book[index - 1].id));
-          const done = passed.has(keyFor(chapter.id));
-          const label = done ? "Ολοκληρώθηκε" : index === firstOpen ? "Ξεκίνα εδώ" : open ? "Άνοιξε" : "Κλειδωμένο";
-          return (
-            <li key={chapter.id} className={chapter.id === focus ? "is-focus" : ""}>
-              <button type="button" disabled={!open} onClick={() => go(`#/chapter/${chapter.id}`)}>
-                <span className="shot">
-                  <img src={`/photos/${chapter.id}.jpg`} alt="" />
-                  <b>{index + 1}</b>
-                </span>
-                <span>
-                  <small>{label}{chapter.id === focus ? " · για σένα" : ""}</small>
-                  <strong>{chapter.title}</strong>
-                  <em>{chapter.kicker}</em>
-                </span>
-                <Icon name={done ? "check" : open ? chapterIcon[chapter.id] : "lock"} />
-              </button>
-            </li>
-          );
-        })}
-      </ol>
+      {["prep", "now"].map((phase) => {
+        const slice = book
+          .map((chapter, index) => ({ chapter, index }))
+          .filter(({ chapter }) => (chapter.phase || "now") === phase);
+        if (!slice.length) return null;
+        return (
+          <section key={phase} className="phase">
+            <p className="kicker">{phase === "prep" ? "Προετοιμασία · ~20%" : "Τώρα μέσα · ~80%"}</p>
+            <ol className="chapters">
+              {slice.map(({ chapter, index }) => {
+                const open = index === 0 || passed.has(keyFor(book[index - 1].id));
+                const done = passed.has(keyFor(chapter.id));
+                const label = done ? "Ολοκληρώθηκε" : index === firstOpen ? "Ξεκίνα εδώ" : open ? "Άνοιξε" : "Κλειδωμένο";
+                return (
+                  <li key={chapter.id} className={chapter.id === focus ? "is-focus" : ""}>
+                    <button type="button" disabled={!open} onClick={() => go(`#/chapter/${chapter.id}`)}>
+                      <span className="shot">
+                        <img src={photo(chapter.id)} alt="" />
+                        <b>{index + 1}</b>
+                      </span>
+                      <span>
+                        <small>{label}{chapter.id === focus ? " · για σένα" : ""}</small>
+                        <strong>{chapter.title}</strong>
+                        <em>{chapter.kicker}</em>
+                      </span>
+                      <Icon name={done ? "check" : open ? chapterIcon[chapter.id] : "lock"} />
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+        );
+      })}
       <div className="row">
         <button type="button" className="btn ghost" onClick={() => go("#/list")}><Icon name="list" /> Λίστα παραμονής</button>
-        <button type="button" className="btn ghost" onClick={() => go("#/play")}><Icon name="cards" /> Παιχνίδια θαλάμου</button>
+        <button type="button" className="btn solid" onClick={() => go("#/play")}><Icon name="cards" /> Περιοχή παιχνιδιών</button>
       </div>
     </main>
   );
@@ -367,15 +389,6 @@ function Chapter({ state, book, id, patch, go, addXp, recordGame }) {
     setSaved(true);
   }
 
-  function listen() {
-    if (!window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    const pieces = chapter.blocks.map((block) => block.text || [block.title, block.items?.join(". ")].filter(Boolean).join(". "));
-    const utterance = new SpeechSynthesisUtterance(pieces.join(" "));
-    utterance.lang = "el-GR";
-    window.speechSynthesis.speak(utterance);
-  }
-
   if (!chapter || !open) {
     return (
       <main className="sheet">
@@ -389,12 +402,11 @@ function Chapter({ state, book, id, patch, go, addXp, recordGame }) {
     <main className="sheet reading">
       <Rail book={book} index={index} country={state.country} passed={passed} go={go} />
       <figure className="chapter-photo">
-        <img src={`/photos/${chapter.id}.jpg`} alt={photoAlt[chapter.id]} />
+        <img src={photo(chapter.id)} alt={photoAlt[chapter.id]} />
       </figure>
       <p className="kicker"><Icon name={chapterIcon[chapter.id]} /> Κεφάλαιο {index + 1}</p>
       <h1>{chapter.title}</h1>
       <p className="lede">{chapter.kicker}</p>
-      <button type="button" className="btn ghost" onClick={listen}><Icon name="headphones" /> Άκουσε το κεφάλαιο</button>
       {chapter.blocks.map((block, i) => {
         if (block.type === "p") return <p key={i}>{block.text}</p>;
         if (block.type === "ul") return <ul key={i}>{block.items.map((item) => <li key={item}>{item}</li>)}</ul>;
@@ -541,26 +553,41 @@ function Quiz({ state, book, id, patch, go }) {
   );
 }
 
-function Play({ state, go, recordGame }) {
+function Play({ state, go, saveBest }) {
   const [which, setWhich] = useState(null);
+  const games = [
+    { id: "snake", icon: "cards", title: "Φίδι", text: "Κλασικό. Σύρε ή πάτα τα βελάκια.", best: state.games.snake, unit: "πόντοι" },
+    { id: "memory", icon: "heart", title: "Μνήμη", text: "Βρες τα ζευγάρια χωρίς άγχος.", best: state.games.memory, unit: "πόντοι" },
+    { id: "react", icon: "sun", title: "Αντίδραση", text: "Πράσινο = πάτα. Πόσο γρήγορα είσαι;", best: state.games.react, unit: "πόντοι" },
+    { id: "simon", icon: "moon", title: "Σειρά", text: "Θυμήσου τα χρώματα και επανέλαβε.", best: state.games.simon, unit: "πόντοι" },
+  ];
   return (
-    <main className="sheet">
-      <p className="kicker">Παιχνίδια θαλάμου</p>
-      <h1>Τρία σύντομα, χωρίς βαθμό που να σε ακολουθεί.</h1>
-      <p className="lede">Οι πόντοι μένουν σε αυτό το τηλέφωνο. Καλύτερη προσπάθεια κρατιέται, δεν προστίθεται ξανά και ξανά.</p>
+    <main className="sheet play-hub">
+      <p className="kicker">Περιοχή παιχνιδιών</p>
+      <h1>Για όταν βαριέσαι στον θάλαμο.</h1>
+      <p className="lede">Καθαρά παιχνίδια. Χωρίς κουίζ και χωρίς μάθημα. Το καλύτερο σκορ μένει σε αυτό το τηλέφωνο.</p>
       {!which && (
-        <div className="grid">
-          <button type="button" onClick={() => setWhich("bag")}><Icon name="bag" /><span><h2>Η τσάντα</h2><p>Χώρισε χαρτιά και ανοησίες.</p></span></button>
-          <button type="button" onClick={() => setWhich("order")}><Icon name="list" /><span><h2>Η σειρά της μέρας</h2><p>Τι γίνεται πριν από τι.</p></span></button>
-          <button type="button" onClick={() => setWhich("scene")}><Icon name="cards" /><span><h2>Σκηνές</h2><p>Ζάλη, τηλέφωνο, θάλαμος.</p></span></button>
+        <div className="play-grid">
+          {games.map((game) => (
+            <button key={game.id} type="button" className="play-card" onClick={() => setWhich(game.id)}>
+              <span className="play-icon"><Icon name={game.icon} /></span>
+              <span>
+                <small>{game.best != null ? `Καλύτερο ${game.best} ${game.unit}` : "Παίξε τώρα"}</small>
+                <strong>{game.title}</strong>
+                <em>{game.text}</em>
+              </span>
+              <Icon name="arrow" />
+            </button>
+          ))}
         </div>
       )}
-      {which === "bag" && <BagGame country={state.country} onDone={(c, t) => recordGame(`bag-${state.country}`, c, t)} />}
-      {which === "order" && <OrderGame country={state.country} onDone={(c, t) => recordGame(`order-${state.country}`, c, t)} />}
-      {which === "scene" && <SituationGame onDone={(c, t) => recordGame("scenes", c, t)} />}
+      {which === "snake" && <SnakeGame onScore={(score) => saveBest("snake", score)} />}
+      {which === "memory" && <MemoryGame onScore={(score) => saveBest("memory", score)} />}
+      {which === "react" && <ReactionGame onScore={(score) => saveBest("react", score)} />}
+      {which === "simon" && <SequenceGame onScore={(score) => saveBest("simon", score)} />}
       <div className="row">
-        {which && <button type="button" className="btn ghost" onClick={() => setWhich(null)}>Άλλο παιχνίδι</button>}
-        <button type="button" className="btn ghost" onClick={() => go("#/map")}>Στον χάρτη</button>
+        {which && <button type="button" className="btn ghost" onClick={() => setWhich(null)}>Όλα τα παιχνίδια</button>}
+        <button type="button" className="btn ghost" onClick={() => go("#/map")}>Στη διαδρομή</button>
       </div>
     </main>
   );
@@ -682,10 +709,10 @@ function Sources() {
 }
 
 function navKey(hash) {
+  if (hash.startsWith("#/play")) return "play";
   if (hash.startsWith("#/ask")) return "ask";
   if (hash.startsWith("#/guide")) return "book";
-  if (hash.startsWith("#/chapter") || hash.startsWith("#/quiz") || hash.startsWith("#/intro")) return "guide";
-  if (hash.startsWith("#/map") || hash.startsWith("#/play") || hash.startsWith("#/list") || hash.startsWith("#/journey")) return "path";
+  if (hash.startsWith("#/map") || hash.startsWith("#/list") || hash.startsWith("#/journey") || hash.startsWith("#/chapter") || hash.startsWith("#/quiz") || hash.startsWith("#/intro")) return "path";
   return "";
 }
 
@@ -693,7 +720,7 @@ function BottomNav({ go, hash }) {
   const current = navKey(hash);
   const items = [
     ["#/map", "Διαδρομή", "path", "path"],
-    ["#/intro", "Οδηγός", "guide", "book"],
+    ["#/play", "Παιχνίδια", "play", "cards"],
     ["#/ask", "Ρώτα", "ask", "chat"],
     ["#/guide", "Εγχειρίδιο", "book", "handbook"],
   ];
@@ -713,7 +740,7 @@ function Foot({ go }) {
   return (
     <footer className="foot">
       <strong>START Θητεία</strong>
-      <p>Διαδραστικός οδηγός για την ημέρα της κατάταξης, σε Ελλάδα και Κύπρο.</p>
+      <p>Οδηγός για τις πρώτες μέρες μέσα — Ελλάδα και Κύπρος. Λίγο προετοιμασία, κυρίως τι γίνεται τώρα.</p>
       <div className="row">
         <button type="button" className="btn ghost" onClick={() => go("#/privacy")}>Απόρρητο</button>
         <button type="button" className="btn ghost" onClick={() => go("#/access")}>Προσβασιμότητα</button>
@@ -743,8 +770,7 @@ function Access() {
       <h1>Να διαβάζεται και όρθιος, με μία χείρα.</h1>
       <ul>
         <li>Μετάβαση στο περιεχόμενο, στην κορυφή κάθε σελίδας.</li>
-        <li>Μεγαλύτερο κείμενο από τις Ρυθμίσεις.</li>
-        <li>Άκουσε το κεφάλαιο, με τη φωνή του τηλεφώνου, στα ελληνικά αν υπάρχει.</li>
+        <li>Μεγαλύτερο κείμενο από το κουμπί Αα.</li>
         <li>Τα κουμπιά δεν βασίζονται μόνο στο χρώμα: το κλειδωμένο κεφάλαιο γράφει «Κλειδωμένο».</li>
       </ul>
     </main>
