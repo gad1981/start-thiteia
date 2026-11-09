@@ -66,43 +66,27 @@ html { scroll-padding-bottom: 110px; }
 .brand {
   display: flex;
   align-items: center;
-  gap: 8px;
   border: 0;
   background: transparent;
   padding: 0;
-  color: var(--cream);
-  font-family: var(--display);
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  line-height: 1;
-  white-space: nowrap;
+  line-height: 0;
 }
-.brand em { font-style: normal; color: var(--brass); }
-.sakos { width: 32px; height: 32px; flex: none; }
-.switch {
+.brand-logo {
+  display: block;
+  height: 34px;
+  width: auto;
+  max-width: min(168px, 46vw);
+  object-fit: contain;
+  object-position: left center;
+}
+.top-actions {
   margin-left: auto;
   display: flex;
-  padding: 3px;
-  border-radius: 999px;
-  background: #1c2820;
+  align-items: center;
+  gap: 6px;
+  flex: none;
 }
-.switch button, .aa {
-  border: 0;
-  background: transparent;
-  color: var(--cream);
-  border-radius: 999px;
-  min-height: 32px;
-  padding: 0 10px;
-  font-size: 14px;
-  white-space: nowrap;
-}
-.switch button.is-on, .aa.is-on, .chips button.is-on, .bottom button.is-on, .rail button.is-on, .pack-actions button.is-on {
-  background: var(--brass);
-  color: #1a1408;
-}
-.aa { font-weight: 800; }
-.burger {
+.top-icon {
   width: 40px;
   height: 40px;
   border: 0;
@@ -113,11 +97,45 @@ html { scroll-padding-bottom: 110px; }
   place-items: center;
   flex: none;
 }
-.burger.is-on {
+.top-icon.is-on {
   background: var(--brass);
   color: #1a1408;
 }
-.burger .icon { width: 22px; height: 22px; }
+.top-icon .icon { width: 22px; height: 22px; }
+.switch {
+  display: flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: #1c2820;
+}
+.switch button {
+  border: 0;
+  background: transparent;
+  color: var(--cream);
+  border-radius: 999px;
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 14px;
+  white-space: nowrap;
+  flex: 1;
+}
+.switch button.is-on, .chips button.is-on, .bottom button.is-on, .rail button.is-on, .pack-actions button.is-on {
+  background: var(--brass);
+  color: #1a1408;
+}
+.settings-panel {
+  display: grid;
+  gap: 14px;
+}
+.settings-block {
+  display: grid;
+  gap: 8px;
+}
+.settings-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(246, 241, 230, 0.62);
+}
 .menu-scrim {
   position: fixed;
   inset: 0;
@@ -226,7 +244,7 @@ html { scroll-padding-bottom: 110px; }
   justify-content: center;
 }
 @media (max-width: 420px) {
-  .switch button { padding: 0 7px; font-size: 12px; }
+  .switch button { padding: 0 8px; font-size: 13px; }
   .brand span { font-size: 20px; }
 }
 .icon {
@@ -1018,7 +1036,13 @@ body.game-open .bottom { visibility: hidden; pointer-events: none; }
   gap: 12px;
   align-items: flex-start;
 }
-.foot-brand .sakos { width: 36px; height: 36px; flex: none; }
+.foot-logo {
+  height: 40px;
+  width: auto;
+  max-width: 150px;
+  object-fit: contain;
+  flex: none;
+}
 .foot-brand strong {
   display: block;
   font-family: var(--display);
@@ -1078,7 +1102,7 @@ body.game-open .bottom { visibility: hidden; pointer-events: none; }
   :root { --shell: min(520px, calc(100% - 20px)); }
   .top { gap: 6px; }
   .brand { font-size: 22px; }
-  .switch button, .aa { padding: 0 8px; }
+  .switch button { padding: 0 8px; }
 }
 @media (max-width: 380px) {
   .bottom button { font-size: 11px; padding: 0 2px; }

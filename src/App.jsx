@@ -143,78 +143,113 @@ const burgerLinks = [
 
 function Header({ country, large, onCountry, onLarge, go }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const panelOpen = menuOpen || settingsOpen;
 
   useEffect(() => {
-    if (!menuOpen) return undefined;
+    if (!panelOpen) return undefined;
     const onKey = (event) => {
-      if (event.key === "Escape") setMenuOpen(false);
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        setSettingsOpen(false);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [menuOpen]);
+  }, [panelOpen]);
 
   function jump(href) {
     setMenuOpen(false);
+    setSettingsOpen(false);
     go(href);
+  }
+
+  function toggleMenu() {
+    setSettingsOpen(false);
+    setMenuOpen((open) => !open);
+  }
+
+  function toggleSettings() {
+    setMenuOpen(false);
+    setSettingsOpen((open) => !open);
+  }
+
+  function closePanels() {
+    setMenuOpen(false);
+    setSettingsOpen(false);
   }
 
   return (
     <header className="top">
-      <button type="button" className="brand" onClick={() => jump("#/")}>
-        <Sakos />
-        <span>START <em>Θητεία</em></span>
+      <button type="button" className="brand" onClick={() => jump("#/")} aria-label="START Θητεία">
+        <img className="brand-logo" src="/brand/logo-st-army.png" alt="" width="210" height="70" />
       </button>
-      <div className="switch" role="group" aria-label="Χώρα">
-        {Object.entries(countries).map(([id, item]) => (
-          <button key={id} type="button" className={country === id ? "is-on" : ""} onClick={() => onCountry(id)}>
-            {item.short}
-          </button>
-        ))}
+      <div className="top-actions">
+        <button
+          type="button"
+          className={`top-icon ${settingsOpen ? "is-on" : ""}`}
+          aria-label={settingsOpen ? "Κλείσιμο ρυθμίσεων" : "Ρυθμίσεις"}
+          aria-expanded={settingsOpen}
+          aria-controls="app-settings"
+          onClick={toggleSettings}
+        >
+          <Icon name="gear" />
+        </button>
+        <button
+          type="button"
+          className={`top-icon ${menuOpen ? "is-on" : ""}`}
+          aria-label={menuOpen ? "Κλείσιμο μενού" : "Άνοιγμα μενού"}
+          aria-expanded={menuOpen}
+          aria-controls="app-menu"
+          onClick={toggleMenu}
+        >
+          <Icon name={menuOpen ? "close" : "menu"} />
+        </button>
       </div>
-      <button type="button" className={large ? "aa is-on" : "aa"} aria-pressed={large} onClick={() => onLarge(!large)}>
-        Αα
-      </button>
-      <button
-        type="button"
-        className={`burger ${menuOpen ? "is-on" : ""}`}
-        aria-label={menuOpen ? "Κλείσιμο μενού" : "Άνοιγμα μενού"}
-        aria-expanded={menuOpen}
-        aria-controls="app-menu"
-        onClick={() => setMenuOpen((open) => !open)}
-      >
-        <Icon name={menuOpen ? "close" : "menu"} />
-      </button>
-      {menuOpen && (
-        <>
-          <button type="button" className="menu-scrim" aria-label="Κλείσιμο μενού" onClick={() => setMenuOpen(false)} />
-          <nav id="app-menu" className="burger-panel" aria-label="Μενού">
-            <p className="kicker">Μενού</p>
-            <ul>
-              {burgerLinks.map(([href, label, icon]) => (
-                <li key={href}>
-                  <button type="button" onClick={() => jump(href)}>
-                    <Icon name={icon} />
-                    <span>{label}</span>
-                    <Icon name="arrow" />
-                  </button>
-                </li>
+      {panelOpen && <button type="button" className="menu-scrim" aria-label="Κλείσιμο" onClick={closePanels} />}
+      {settingsOpen && (
+        <div id="app-settings" className="burger-panel settings-panel" role="dialog" aria-label="Ρυθμίσεις">
+          <p className="kicker">Ρυθμίσεις</p>
+          <div className="settings-block">
+            <span className="settings-label">Χώρα / περιεχόμενο</span>
+            <div className="switch" role="group" aria-label="Χώρα">
+              {Object.entries(countries).map(([id, item]) => (
+                <button key={id} type="button" className={country === id ? "is-on" : ""} onClick={() => onCountry(id)}>
+                  {item.short}
+                </button>
               ))}
-            </ul>
-          </nav>
-        </>
+            </div>
+          </div>
+          <div className="settings-block">
+            <span className="settings-label">Μέγεθος κειμένου</span>
+            <div className="switch" role="group" aria-label="Μέγεθος κειμένου">
+              <button type="button" className={!large ? "is-on" : ""} aria-pressed={!large} onClick={() => onLarge(false)}>
+                Κανονικό
+              </button>
+              <button type="button" className={large ? "is-on" : ""} aria-pressed={large} onClick={() => onLarge(true)}>
+                Μεγάλο
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {menuOpen && (
+        <nav id="app-menu" className="burger-panel" aria-label="Μενού">
+          <p className="kicker">Μενού</p>
+          <ul>
+            {burgerLinks.map(([href, label, icon]) => (
+              <li key={href}>
+                <button type="button" onClick={() => jump(href)}>
+                  <Icon name={icon} />
+                  <span>{label}</span>
+                  <Icon name="arrow" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
       )}
     </header>
-  );
-}
-
-function Sakos() {
-  return (
-    <svg className="sakos" viewBox="0 0 32 32" aria-hidden="true">
-      <rect width="32" height="32" rx="8" fill="#243028" />
-      <path d="M7 10h18v14a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4z" fill="#f4efe4" />
-      <path d="M12 11c.5 4 .5 8 0 13M20 11c-.5 4-.5 8 0 13" fill="none" stroke="#243028" strokeWidth="1.6" />
-      <rect x="13" y="18" width="6" height="5" rx="1" fill="#243028" />
-    </svg>
   );
 }
 
@@ -884,7 +919,7 @@ function Foot({ go }) {
   return (
     <footer className="foot">
       <div className="foot-brand">
-        <Sakos />
+        <img className="foot-logo" src="/brand/logo-st-army.png" alt="" width="210" height="70" />
         <div>
           <strong>START Θητεία</strong>
           <p>Οδηγός για τις πρώτες μέρες μέσα — Ελλάδα και Κύπρος.</p>
@@ -918,7 +953,7 @@ function Access() {
       <h1>Να διαβάζεται και όρθιος, με μία χείρα.</h1>
       <ul>
         <li>Μετάβαση στο περιεχόμενο, στην κορυφή κάθε σελίδας.</li>
-        <li>Μεγαλύτερο κείμενο από το κουμπί Αα.</li>
+        <li>Μεγαλύτερο κείμενο από τις ρυθμίσεις (εικονίδιο γραναζιού).</li>
         <li>Τα κουμπιά δεν βασίζονται μόνο στο χρώμα: το κλειδωμένο κεφάλαιο γράφει «Κλειδωμένο».</li>
       </ul>
     </main>
