@@ -7,6 +7,7 @@ import {
   checklistFor,
   closerFor,
   countries,
+  helpCatalogue,
   highlightChapter,
   introPoints,
   kit,
@@ -109,6 +110,7 @@ export default function App() {
       {route.name === "list" && <CheckList state={state} patch={patch} />}
       {route.name === "ask" && <Ask country={country} go={go} />}
       {route.name === "guide" && <Guide state={state} book={book} />}
+      {route.name === "help" && <Help state={state} go={go} />}
       {route.name === "sources" && <Sources go={go} />}
       {route.name === "privacy" && <Privacy />}
       {route.name === "access" && <Access />}
@@ -124,16 +126,45 @@ function parseHash(hash) {
   const parts = hash.replace(/^#/, "").split("/").filter(Boolean);
   if (parts[0] === "chapter" && parts[1]) return { name: "chapter", id: parts[1] };
   if (parts[0] === "quiz" && parts[1]) return { name: "quiz", id: parts[1] };
-  if (["journey", "map", "play", "list", "ask", "guide", "sources", "intro", "privacy", "access", "program"].includes(parts[0])) {
+  if (["journey", "map", "play", "list", "ask", "guide", "help", "sources", "intro", "privacy", "access", "program"].includes(parts[0])) {
     return { name: parts[0] };
   }
   return { name: "home" };
 }
 
+const burgerLinks = [
+  ["#/help", "Βοήθεια & τηλέφωνα", "life"],
+  ["#/map", "Διαδρομή", "path"],
+  ["#/list", "Λίστα παραμονής", "list"],
+  ["#/play", "Παιχνίδια", "cards"],
+  ["#/ask", "Ρώτα", "chat"],
+  ["#/guide", "Εγχειρίδιο", "handbook"],
+  ["#/sources", "Πηγές", "file"],
+  ["#/privacy", "Απόρρητο", "lock"],
+  ["#/access", "Προσβασιμότητα", "sun"],
+  ["#/program", "Το πρόγραμμα", "book"],
+];
+
 function Header({ country, large, onCountry, onLarge, go }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const onKey = (event) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
+
+  function jump(href) {
+    setMenuOpen(false);
+    go(href);
+  }
+
   return (
     <header className="top">
-      <button type="button" className="brand" onClick={() => go("#/")}>
+      <button type="button" className="brand" onClick={() => jump("#/")}>
         <Sakos />
         <span>START <em>Θητεία</em></span>
       </button>
@@ -147,6 +178,35 @@ function Header({ country, large, onCountry, onLarge, go }) {
       <button type="button" className={large ? "aa is-on" : "aa"} aria-pressed={large} onClick={() => onLarge(!large)}>
         Αα
       </button>
+      <button
+        type="button"
+        className={`burger ${menuOpen ? "is-on" : ""}`}
+        aria-label={menuOpen ? "Κλείσιμο μενού" : "Άνοιγμα μενού"}
+        aria-expanded={menuOpen}
+        aria-controls="app-menu"
+        onClick={() => setMenuOpen((open) => !open)}
+      >
+        <Icon name={menuOpen ? "close" : "menu"} />
+      </button>
+      {menuOpen && (
+        <>
+          <button type="button" className="menu-scrim" aria-label="Κλείσιμο μενού" onClick={() => setMenuOpen(false)} />
+          <nav id="app-menu" className="burger-panel" aria-label="Μενού">
+            <p className="kicker">Μενού</p>
+            <ul>
+              {burgerLinks.map(([href, label, icon]) => (
+                <li key={href}>
+                  <button type="button" onClick={() => jump(href)}>
+                    <Icon name={icon} />
+                    <span>{label}</span>
+                    <Icon name="arrow" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </>
+      )}
     </header>
   );
 }
@@ -743,6 +803,51 @@ function Guide({ state, book }) {
   );
 }
 
+function Help({ state, go }) {
+  const catalogue = helpCatalogue[state.country] || helpCatalogue.gr;
+  const place = countries[state.country];
+  return (
+    <main className="sheet help-page">
+      <p className="kicker">Κατάλογος βοήθειας · {place.name}</p>
+      <h1>{catalogue.title}</h1>
+      <p className="lede">{catalogue.lede}</p>
+      <p className="fine">Οι αριθμοί αλλάζουν. Αν κάτι δεν απαντά, δοκίμασε το site ή ρώτα στη μονάδα. Άλλαξε χώρα από πάνω για τον άλλο κατάλογο.</p>
+      {catalogue.groups.map((group) => (
+        <section key={group.id} className="help-group">
+          <h2>{group.title}</h2>
+          <ul className="help-list">
+            {group.items.map((item) => (
+              <li key={`${group.id}-${item.name}`}>
+                <div>
+                  <strong>{item.name}</strong>
+                  {item.note && <p>{item.note}</p>}
+                  {item.hours && <span className="help-hours">{item.hours}</span>}
+                </div>
+                <div className="help-actions">
+                  {item.phone && (
+                    <a className="btn solid tiny" href={`tel:${item.phone}`}>
+                      {item.display || item.phone}
+                    </a>
+                  )}
+                  {item.href && (
+                    <a className="btn ghost tiny" href={item.href} target="_blank" rel="noreferrer">
+                      Site
+                    </a>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+      <div className="row">
+        <button type="button" className="btn ghost" onClick={() => go("#/ask")}>Ρώτα κάτι</button>
+        <button type="button" className="btn ghost" onClick={() => go("#/sources")}>Πηγές</button>
+      </div>
+    </main>
+  );
+}
+
 function Sources() {
   return (
     <main className="sheet">
@@ -795,6 +900,7 @@ function Foot({ go }) {
       <strong>START Θητεία</strong>
       <p>Οδηγός για τις πρώτες μέρες μέσα — Ελλάδα και Κύπρος. Λίγο προετοιμασία, κυρίως τι γίνεται τώρα.</p>
       <div className="row">
+        <button type="button" className="btn ghost" onClick={() => go("#/help")}>Βοήθεια</button>
         <button type="button" className="btn ghost" onClick={() => go("#/privacy")}>Απόρρητο</button>
         <button type="button" className="btn ghost" onClick={() => go("#/access")}>Προσβασιμότητα</button>
         <button type="button" className="btn ghost" onClick={() => go("#/program")}>Το πρόγραμμα</button>

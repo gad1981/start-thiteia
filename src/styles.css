@@ -98,6 +98,133 @@ html { scroll-padding-bottom: 110px; }
   color: #1a1408;
 }
 .aa { font-weight: 800; }
+.burger {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 12px;
+  background: #1c2820;
+  color: var(--cream);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.burger.is-on {
+  background: var(--brass);
+  color: #1a1408;
+}
+.burger .icon { width: 22px; height: 22px; }
+.menu-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  border: 0;
+  background: rgba(8, 12, 9, 0.55);
+}
+.burger-panel {
+  position: fixed;
+  top: 60px;
+  right: max(14px, calc((100% - 520px) / 2 + 14px));
+  z-index: 6;
+  width: min(320px, calc(100% - 28px));
+  max-height: calc(100dvh - 80px);
+  overflow: auto;
+  padding: 14px;
+  border-radius: 18px;
+  background: #151c16;
+  border: 1px solid rgba(246, 241, 230, 0.12);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+  color: var(--cream);
+}
+.burger-panel .kicker {
+  margin: 0 0 8px;
+  color: var(--brass);
+}
+.burger-panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.burger-panel button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--cream);
+  text-align: left;
+}
+.burger-panel button:active,
+.burger-panel button:hover {
+  background: rgba(246, 241, 230, 0.08);
+}
+.burger-panel button span { flex: 1; font-weight: 700; }
+.burger-panel button > .icon:last-child {
+  width: 16px;
+  height: 16px;
+  opacity: 0.55;
+}
+.help-group { margin-top: 22px; }
+.help-group h2 { font-size: 28px; margin-bottom: 10px; }
+.help-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.help-list li {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+}
+.help-list strong {
+  display: block;
+  font-family: var(--display);
+  font-size: 22px;
+  line-height: 1.05;
+}
+.help-list p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.4;
+}
+.help-hours {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brass-2);
+}
+.help-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.help-actions .btn.tiny {
+  font-size: 13px;
+  border-radius: 12px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+@media (max-width: 420px) {
+  .switch button { padding: 0 7px; font-size: 12px; }
+  .brand span { font-size: 20px; }
+}
 .icon {
   width: 22px;
   height: 22px;
