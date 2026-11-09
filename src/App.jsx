@@ -80,7 +80,7 @@ export default function App() {
   }
 
   return (
-    <div className={state.large ? "app is-large" : "app"}>
+    <div className={`app${state.large ? " is-large" : ""}${route.name === "home" ? " is-home" : ""}`}>
       <a className="skip" href="#continut">Μετάβαση στο περιεχόμενο</a>
       <Header
         country={country}
@@ -90,7 +90,7 @@ export default function App() {
         go={go}
       />
       <div id="continut">
-      {route.name === "home" && <Home state={state} book={book} go={go} />}
+      {route.name === "home" && <Home state={state} go={go} />}
       {route.name === "journey" && <Journey state={state} patch={patch} go={go} />}
       {route.name === "intro" && <Intro go={go} />}
       {route.name === "map" && <Map state={state} book={book} go={go} />}
@@ -117,7 +117,7 @@ export default function App() {
       {route.name === "program" && <Program />}
       {route.name === "home" && <Foot go={go} />}
       </div>
-      <BottomNav hash={hash} go={go} />
+      {route.name !== "home" && <BottomNav hash={hash} go={go} />}
     </div>
   );
 }
@@ -134,11 +134,7 @@ function parseHash(hash) {
 
 const burgerLinks = [
   ["#/help", "Βοήθεια & τηλέφωνα", "life"],
-  ["#/map", "Διαδρομή", "path"],
   ["#/list", "Λίστα παραμονής", "list"],
-  ["#/play", "Παιχνίδια", "cards"],
-  ["#/ask", "Ρώτα", "chat"],
-  ["#/guide", "Εγχειρίδιο", "handbook"],
   ["#/sources", "Πηγές", "file"],
   ["#/privacy", "Απόρρητο", "lock"],
   ["#/access", "Προσβασιμότητα", "sun"],
@@ -222,7 +218,7 @@ function Sakos() {
   );
 }
 
-function Home({ state, book, go }) {
+function Home({ state, go }) {
   const place = countries[state.country];
   return (
     <main className="home-screen">
@@ -244,26 +240,6 @@ function Home({ state, book, go }) {
           </button>
         </div>
       </section>
-      <ol className="preview">
-        {book.map((chapter, index) => {
-          const open = index === 0 || state.quizzes[`${state.country}:${book[index - 1].id}`] !== undefined;
-          return (
-            <li key={chapter.id}>
-              <button type="button" onClick={() => go(open ? `#/chapter/${chapter.id}` : "#/map")}>
-                <span className="shot">
-                  <img src={photo(chapter.id)} alt="" />
-                  <b>{String(index + 1).padStart(2, "0")}</b>
-                </span>
-                <span>
-                  <strong>{chapter.title}</strong>
-                  <em>{chapter.kicker}</em>
-                </span>
-                <Icon name={open ? chapterIcon[chapter.id] : "lock"} />
-              </button>
-            </li>
-          );
-        })}
-      </ol>
       <section className="band">
         <h2>Περίπου 20% χαρτιά. 80% τι κάνουμε τώρα.</h2>
         <p>Ένα σύντομο κεφάλαιο για ό,τι ήδη πρέπει να έχεις. Τα υπόλοιπα για θάλαμο, σώμα, τηλέφωνο, άδειες. Και φίδι, μνήμη, αντίδραση όταν βαριέσαι.</p>
@@ -895,17 +871,27 @@ function BottomNav({ go, hash }) {
 }
 
 function Foot({ go }) {
+  const links = [
+    ["#/help", "Βοήθεια"],
+    ["#/privacy", "Απόρρητο"],
+    ["#/access", "Προσβασιμότητα"],
+    ["#/program", "Το πρόγραμμα"],
+    ["#/sources", "Πηγές"],
+  ];
   return (
     <footer className="foot">
-      <strong>START Θητεία</strong>
-      <p>Οδηγός για τις πρώτες μέρες μέσα — Ελλάδα και Κύπρος. Λίγο προετοιμασία, κυρίως τι γίνεται τώρα.</p>
-      <div className="row">
-        <button type="button" className="btn ghost" onClick={() => go("#/help")}>Βοήθεια</button>
-        <button type="button" className="btn ghost" onClick={() => go("#/privacy")}>Απόρρητο</button>
-        <button type="button" className="btn ghost" onClick={() => go("#/access")}>Προσβασιμότητα</button>
-        <button type="button" className="btn ghost" onClick={() => go("#/program")}>Το πρόγραμμα</button>
-        <button type="button" className="btn ghost" onClick={() => go("#/sources")}>Πηγές</button>
+      <div className="foot-brand">
+        <Sakos />
+        <div>
+          <strong>START Θητεία</strong>
+          <p>Οδηγός για τις πρώτες μέρες μέσα — Ελλάδα και Κύπρος.</p>
+        </div>
       </div>
+      <nav className="foot-links" aria-label="Υποσέλιδο">
+        {links.map(([href, label]) => (
+          <button key={href} type="button" onClick={() => go(href)}>{label}</button>
+        ))}
+      </nav>
       <p className="fine">Δεν είναι σελίδα του ΓΕΣ ή του ΓΕΕΦ. Το σημείωμα κατάταξης κερδίζει πάντα.</p>
     </footer>
   );
