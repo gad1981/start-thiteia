@@ -22,7 +22,7 @@ import { BagGame, OrderGame } from "./games.jsx";
 import { chapterIcon, Icon, introIcon, kitIcon, photoAlt, worryIcon } from "./icons.jsx";
 import { loadState, saveState } from "./storage.js";
 
-const PHOTO_V = "5";
+const PHOTO_V = "23";
 const photo = (id) => `/photos/${id}.jpg?v=${PHOTO_V}`;
 
 function useHash() {
@@ -223,11 +223,14 @@ function Home({ state, go }) {
   return (
     <main className="home-screen">
       <section className="hero">
-        <img className="hero-photo" src={photo("hero")} alt={photoAlt.hero} />
+        <picture>
+          <source media="(max-width: 767px)" srcSet={photo("hero-mobile")} />
+          <img className="hero-photo" src={photo("hero")} alt={photoAlt.hero} />
+        </picture>
         <div className="hero-copy">
           <p className="eyebrow">Για την πρώτη μέρα μέσα · {place.force}</p>
           <h1>Μπήκες. Ας δούμε τι γίνεται τώρα.</h1>
-          <p className="lede">Λίγο για τα χαρτιά. Κυρίως για τον ρυθμό μέσα. Και παιχνίδια θαλάμου. Χωρίς λογαριασμό.</p>
+          <p className="lede">Λίγο για τα δικαιολογητικά. Κυρίως για τον ρυθμό μέσα. Και παιχνίδια θαλάμου. Χωρίς λογαριασμό.</p>
         </div>
         <div className="hero-actions">
           <button type="button" className="btn solid" onClick={() => go(state.onboarded ? "#/map" : "#/journey")}>
@@ -241,7 +244,7 @@ function Home({ state, go }) {
         </div>
       </section>
       <section className="band">
-        <h2>Περίπου 20% χαρτιά. 80% τι κάνουμε τώρα.</h2>
+        <h2>Περίπου 20% τα τυπικά. 80% τι κάνουμε τώρα.</h2>
         <p>Ένα σύντομο κεφάλαιο για ό,τι ήδη πρέπει να έχεις. Τα υπόλοιπα για θάλαμο, σώμα, τηλέφωνο, άδειες. Και φίδι, μνήμη, αντίδραση όταν βαριέσαι.</p>
         <div className="row">
           <button type="button" className="btn solid" onClick={() => go(state.onboarded ? "#/map" : "#/journey")}>Άνοιξε τη διαδρομή</button>
@@ -257,7 +260,7 @@ function Intro({ go }) {
     <main className="sheet">
       <p className="kicker">Οδηγός</p>
       <h1>Μερικά πράγματα που βοηθάνε την πρώτη μέρα μέσα.</h1>
-      <p className="lede">Ουρά, χαρτιά, θάλαμος και ένα τηλέφωνο που δεν χτυπά όποτε θέλεις. Δεν χρειάζεται να τα ξέρεις όλα. Χρειάζεται να ξέρεις τι γίνεται τώρα.</p>
+      <p className="lede">Ουρά, έλεγχοι, θάλαμος και ένα τηλέφωνο που δεν χτυπά όποτε θέλεις. Δεν χρειάζεται να τα ξέρεις όλα. Χρειάζεται να ξέρεις τι γίνεται τώρα.</p>
       {introPoints.map((point, index) => (
         <section key={point.title} className="point">
           <p className="kicker"><Icon name={introIcon[index]} /> {point.kicker}</p>
