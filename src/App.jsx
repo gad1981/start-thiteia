@@ -115,7 +115,7 @@ export default function App() {
       {route.name === "privacy" && <Privacy />}
       {route.name === "access" && <Access />}
       {route.name === "program" && <Program />}
-      {route.name === "home" && <Foot go={go} />}
+      {route.name === "home" && <Foot country={country} go={go} />}
       </div>
       {route.name !== "home" && <BottomNav hash={hash} go={go} />}
     </div>
@@ -145,6 +145,15 @@ function Header({ country, large, onCountry, onLarge, go }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const panelOpen = menuOpen || settingsOpen;
+
+  useEffect(() => {
+    const close = () => {
+      setMenuOpen(false);
+      setSettingsOpen(false);
+    };
+    window.addEventListener("hashchange", close);
+    return () => window.removeEventListener("hashchange", close);
+  }, []);
 
   useEffect(() => {
     if (!panelOpen) return undefined;
@@ -265,7 +274,7 @@ function Home({ state, go }) {
         <div className="hero-copy">
           <p className="eyebrow">Για την πρώτη μέρα μέσα · {place.force}</p>
           <h1>Μπήκες. Ας δούμε τι γίνεται τώρα.</h1>
-          <p className="lede">Λίγο για τα δικαιολογητικά. Κυρίως για τον ρυθμό μέσα. Και παιχνίδια θαλάμου. Χωρίς λογαριασμό.</p>
+          <p className="lede">Τι γίνεται από το πρωί, τι κρατάς στο μυαλό σου, και λίγα παιχνίδια για όταν βαριέσαι στον θάλαμο.</p>
         </div>
         <div className="hero-actions">
           <button type="button" className="btn solid" onClick={() => go(state.onboarded ? "#/map" : "#/journey")}>
@@ -279,8 +288,8 @@ function Home({ state, go }) {
         </div>
       </section>
       <section className="band">
-        <h2>Περίπου 20% τα τυπικά. 80% τι κάνουμε τώρα.</h2>
-        <p>Ένα σύντομο κεφάλαιο για ό,τι ήδη πρέπει να έχεις. Τα υπόλοιπα για θάλαμο, σώμα, τηλέφωνο, άδειες. Και φίδι, μνήμη, αντίδραση όταν βαριέσαι.</p>
+        <h2>Λίγη προετοιμασία. Κυρίως τι γίνεται μέσα.</h2>
+        <p>Ένα σύντομο κεφάλαιο για ό,τι ήδη πρέπει να έχεις μαζί. Τα υπόλοιπα για θάλαμο, σώμα, τηλέφωνο, άδειες — και λίγα παιχνίδια όταν βαριέσαι.</p>
         <div className="row">
           <button type="button" className="btn solid" onClick={() => go(state.onboarded ? "#/map" : "#/journey")}>Άνοιξε τη διαδρομή</button>
           <button type="button" className="btn ghost" onClick={() => go("#/play")}>Παιχνίδια</button>
@@ -294,7 +303,7 @@ function Intro({ go }) {
   return (
     <main className="sheet">
       <p className="kicker">Οδηγός</p>
-      <h1>Μερικά πράγματα που βοηθάνε την πρώτη μέρα μέσα.</h1>
+      <h1>Μερικά πράγματα που βοηθούν την πρώτη μέρα μέσα.</h1>
       <p className="lede">Ουρά, έλεγχοι, θάλαμος και ένα τηλέφωνο που δεν χτυπά όποτε θέλεις. Δεν χρειάζεται να τα ξέρεις όλα. Χρειάζεται να ξέρεις τι γίνεται τώρα.</p>
       {introPoints.map((point, index) => (
         <section key={point.title} className="point">
@@ -321,7 +330,7 @@ function Journey({ state, patch, go }) {
     { title: "Τι σε απασχολεί τώρα μέσα;", hint: "Ως τρία.", valid: draft.worries.length > 0 },
     { title: "Τι θέλεις να σου μείνει από τις πρώτες μέρες;", hint: "Ένα.", valid: Boolean(draft.aim) },
     { title: "Πού βρίσκεσαι τώρα;", hint: "Ένα.", valid: Boolean(draft.timing) },
-    { title: "Από πού θες να ξεκινήσει ο οδηγός;", hint: "Ένα.", valid: Boolean(draft.support) },
+    { title: "Από πού θέλεις να ξεκινήσει ο οδηγός;", hint: "Ένα.", valid: Boolean(draft.support) },
   ];
 
   function toggleWorry(id) {
@@ -399,7 +408,7 @@ function Map({ state, book, go }) {
       <section className="sheet">
         <p className="kicker">{countries[state.country].force}</p>
         <h1>Η διαδρομή μου</h1>
-        <p className="lede">Λίγο προετοιμασία. Κυρίως τι κάνουμε τώρα. Τα κεφάλαια ξεκλειδώνουν ένα ένα.</p>
+        <p className="lede">Λίγη προετοιμασία. Κυρίως τι κάνουμε τώρα. Τα κεφάλαια ξεκλειδώνουν ένα ένα.</p>
         <p>{personalLine(state)}</p>
         <div className="meter" aria-label={`${progress.pct}%`}>
           <div><b>{progress.pct}%</b><span>{progress.done} από {progress.total} κεφάλαια ολοκληρώθηκαν</span></div>
@@ -587,7 +596,7 @@ function Quiz({ state, book, id, patch, go }) {
     <main className="sheet">
       <p className="kicker">Κουίζ · {answered}/{chapter.quiz.length}</p>
       <h1>{chapter.title}</h1>
-      <p className="lede">Απάντησε με τον ρυθμό σου. Κάθε απάντηση σε βοηθά να σκεφτείς. Το επόμενο κεφάλαιο ανοίγει μόλις τις στείλεις.</p>
+      <p className="lede">Απάντησε με τον ρυθμό σου. Κάθε επιλογή σε βοηθά να σκεφτείς. Το επόμενο κεφάλαιο ανοίγει μόλις υποβάλεις τις απαντήσεις.</p>
       {chapter.quiz.map((question, questionIndex) => (
         <fieldset key={question.q} disabled={done}>
           <legend>Ερώτηση {questionIndex + 1}. {question.q}</legend>
@@ -598,7 +607,7 @@ function Quiz({ state, book, id, patch, go }) {
             return (
               <button key={option.t} type="button" className={mark} onClick={() => setAnswers({ ...answers, [questionIndex]: optionIndex })}>
                 <b>{letter}</b> {option.t}
-                {done && selected && <small>{option.good ? "Αυτό ταιριάζει με τα χαρτιά. " : "Ας το δούμε και από άλλη οπτική. "}{option.why}</small>}
+                {done && selected && <small>{option.good ? "Αυτό ταιριάζει με τις επίσημες οδηγίες. " : "Ας το δούμε και από άλλη οπτική. "}{option.why}</small>}
               </button>
             );
           })}
@@ -611,7 +620,7 @@ function Quiz({ state, book, id, patch, go }) {
       ) : (
         <section className="done-card">
           <h2>Το κεφάλαιο ολοκληρώθηκε!</h2>
-          <p>Μπράβο. Είσαι έτοιμος για το επόμενο βήμα. {score} από {chapter.quiz.length} ταίριαξαν με τα χαρτιά.</p>
+          <p>Μπράβο. Είσαι έτοιμος για το επόμενο βήμα. {score} από {chapter.quiz.length} ταίριαξαν με τις επίσημες οδηγίες.</p>
           <div className="row">
             {next ? (
               <button type="button" className="btn solid" onClick={() => go(`#/chapter/${next.id}`)}>Επόμενο κεφάλαιο</button>
@@ -793,9 +802,9 @@ function Guide({ state, book }) {
   return (
     <main className="sheet guide">
       <p className="kicker">Εκτυπώσιμος οδηγός · {countries[state.country].name}</p>
-      <h1>START Θητεία — τα πρακτικά</h1>
+      <h1>START Θητεία — τα βασικά σε μία σελίδα</h1>
       <p>{personalLine(state)}</p>
-      <h2>Κράτα αυτά</h2>
+      <h2>Κράτα μαζί σου</h2>
       <ul>{items.map((item) => <li key={item.id}>{item.label}</li>)}</ul>
       <h2>Κιτ για τις πρώτες μέρες</h2>
       <ul className="kit">
@@ -825,7 +834,7 @@ function Help({ state, go }) {
       <p className="kicker">Κατάλογος βοήθειας · {place.name}</p>
       <h1>{catalogue.title}</h1>
       <p className="lede">{catalogue.lede}</p>
-      <p className="fine">Οι αριθμοί αλλάζουν. Αν κάτι δεν απαντά, δοκίμασε το site ή ρώτα στη μονάδα. Άλλαξε χώρα από πάνω για τον άλλο κατάλογο.</p>
+      <p className="fine">Οι αριθμοί αλλάζουν. Αν κάτι δεν απαντά, δοκίμασε το site ή ρώτα στη μονάδα. Άλλαξε χώρα από τις ρυθμίσεις για τον άλλο κατάλογο.</p>
       {catalogue.groups.map((group) => (
         <section key={group.id} className="help-group">
           <h2>{group.title}</h2>
@@ -908,29 +917,49 @@ function BottomNav({ go, hash }) {
   );
 }
 
-function Foot({ go }) {
-  const links = [
-    ["#/help", "Βοήθεια"],
-    ["#/privacy", "Απόρρητο"],
-    ["#/access", "Προσβασιμότητα"],
-    ["#/program", "Το πρόγραμμα"],
-    ["#/sources", "Πηγές"],
-  ];
+function Foot({ country, go }) {
+  const year = new Date().getFullYear();
+  const place = countries[country]?.name || "Ελλάδα";
   return (
     <footer className="foot">
-      <div className="foot-brand">
-        <img className="foot-logo" src="/brand/logo-st-army.png" alt="" width="210" height="70" />
-        <div>
-          <strong>START Θητεία</strong>
-          <p>Οδηγός για τις πρώτες μέρες μέσα — Ελλάδα και Κύπρος.</p>
+      <div className="foot-inner">
+        <div className="foot-grid">
+          <div className="foot-brand">
+            <button type="button" className="foot-logo-btn" onClick={() => go("#/")} aria-label="START Θητεία — αρχική">
+              <img className="foot-logo" src="/brand/logo-st-army.png" alt="" width="210" height="70" />
+            </button>
+            <p className="foot-blurb">Οδηγός για τις πρώτες μέρες μέσα — Ελλάδα και Κύπρος.</p>
+          </div>
+
+          <div className="foot-col">
+            <span className="foot-heading">Υποστήριξη</span>
+            <button type="button" onClick={() => go("#/help")}>Βοήθεια & τηλέφωνα</button>
+            <span className="foot-heading foot-heading-gap">Νομικά</span>
+            <button type="button" onClick={() => go("#/privacy")}>Απόρρητο</button>
+            <button type="button" onClick={() => go("#/access")}>Προσβασιμότητα</button>
+          </div>
+
+          <div className="foot-col">
+            <span className="foot-heading">Πρόγραμμα</span>
+            <button type="button" onClick={() => go("#/program")}>Το πρόγραμμα</button>
+            <button type="button" onClick={() => go("#/sources")}>Πηγές</button>
+          </div>
+
+          <div className="foot-col">
+            <span className="foot-heading">Δημιουργήθηκε από</span>
+            <p>Care Direct · {place}</p>
+            <p>
+              <a href="mailto:info@caredirect.com">info@caredirect.com</a>
+            </p>
+          </div>
         </div>
+
+        <div className="foot-base">
+          <span>© {year} Care Direct. Με επιφύλαξη παντός δικαιώματος.</span>
+          <span>Δημιουργήθηκε από την Care Direct · {place}</span>
+        </div>
+        <p className="foot-note">Δεν είναι σελίδα του ΓΕΣ ή του ΓΕΕΦ. Το σημείωμα κατάταξης κερδίζει πάντα.</p>
       </div>
-      <nav className="foot-links" aria-label="Υποσέλιδο">
-        {links.map(([href, label]) => (
-          <button key={href} type="button" onClick={() => go(href)}>{label}</button>
-        ))}
-      </nav>
-      <p className="fine">Δεν είναι σελίδα του ΓΕΣ ή του ΓΕΕΦ. Το σημείωμα κατάταξης κερδίζει πάντα.</p>
     </footer>
   );
 }
@@ -940,8 +969,8 @@ function Privacy() {
     <main className="sheet">
       <p className="kicker">Απόρρητο</p>
       <h1>Τίποτα από τη διαδρομή σου δεν φεύγει από το τηλέφωνο.</h1>
-      <p>Χώρα, κεφάλαια, απαντήσεις κουίζ, σημειώσεις και η λίστα παραμονής γράφονται μόνο στο localStorage αυτού του browser. Δεν υπάρχει λογαριασμός και δεν στέλνεται ερώτηση σε διακομιστή.</p>
-      <p>Αν σβήσεις τα δεδομένα του browser, η διαδρομή ξεκινά από την αρχή.</p>
+      <p>Χώρα, κεφάλαια, απαντήσεις κουίζ, σημειώσεις και η λίστα παραμονής μένουν μόνο σε αυτό το τηλέφωνο ή υπολογιστή. Δεν υπάρχει λογαριασμός και τίποτα δεν στέλνεται σε διακομιστή.</p>
+      <p>Αν σβήσεις τα δεδομένα του προγράμματος περιήγησης, η διαδρομή ξεκινά από την αρχή.</p>
     </main>
   );
 }
@@ -950,7 +979,7 @@ function Access() {
   return (
     <main className="sheet">
       <p className="kicker">Προσβασιμότητα</p>
-      <h1>Να διαβάζεται και όρθιος, με μία χείρα.</h1>
+      <h1>Να διαβάζεται και όρθιος, με το ένα χέρι.</h1>
       <ul>
         <li>Μετάβαση στο περιεχόμενο, στην κορυφή κάθε σελίδας.</li>
         <li>Μεγαλύτερο κείμενο από τις ρυθμίσεις (εικονίδιο γραναζιού).</li>
@@ -965,8 +994,8 @@ function Program() {
     <main className="sheet">
       <p className="kicker">Το πρόγραμμα</p>
       <h1>Οδηγός για την ημέρα που παρουσιάζεσαι.</h1>
-      <p>Ακολουθεί το καλούπι των οδηγών START: σύντομα κεφάλαια, κουίζ που ανοίγει το επόμενο, ερώτηση στον οδηγό, και εγχειρίδιο που τυπώνεται. Η ύλη είναι η κατάταξη σε Ελλάδα και Κύπρο, όχι η εκπαίδευση μάχης.</p>
-      <h2>Τι χωρά στο κιτ των πρώτων ημερών</h2>
+      <p>Ακολουθεί το σχήμα των οδηγών START: σύντομα κεφάλαια, κουίζ που ανοίγει το επόμενο, ερώτηση στον οδηγό, και εγχειρίδιο που τυπώνεται. Η ύλη αφορά την κατάταξη σε Ελλάδα και Κύπρο — όχι εκπαίδευση μάχης.</p>
+      <h2>Τι χωράει στο κιτ των πρώτων ημερών</h2>
       <ul className="kit">
         {kit.map((item) => <li key={item.title}><strong>{item.title}.</strong> {item.text}</li>)}
       </ul>
